@@ -1,7 +1,6 @@
 package bug.movable_content_crash // ktlint-disable package-name
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
@@ -17,10 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Placeable
@@ -62,6 +61,7 @@ fun Repro() {
     }
   }
   var switch by remember { mutableStateOf(true) }
+  val logs = remember { mutableStateListOf<String>() }
   Column(
     verticalArrangement = Arrangement.spacedBy(50.dp),
     modifier = Modifier.fillMaxSize(),
@@ -70,13 +70,14 @@ fun Repro() {
       Text(text = "Flip me")
     }
     Column {
-      Text("Without subcompose, does work")
-      WithoutSubcomposeLayout(ctaButton, switch)
+      Text("Without subcompose. Should have 16.dp horizontal padding and print 1")
+      WithoutSubcomposeLayout(ctaButton, switch) { logs += it }
     }
     Column {
-      Text("With subcompose, doesn't work")
-      WithSubcomposeLayout(ctaButton, switch)
+      Text("With subcompose. Should have 32.dp horizontal padding and print 2")
+      WithSubcomposeLayout(ctaButton, switch) { logs += it }
     }
+    Text(text = "Logs: ${logs.toList()}")
   }
 }
 
@@ -84,19 +85,19 @@ fun Repro() {
 fun WithSubcomposeLayout(
   ctaButton: @Composable (CtaButtonParams) -> Unit,
   switch: Boolean,
+  log: (String) -> Unit,
 ) {
   Column(
     verticalArrangement = Arrangement.spacedBy(50.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
     modifier = Modifier.fillMaxWidth(),
   ) {
     if (switch) {
-      ctaButton(CtaButtonParams("1", onClick = { Log.d("TAG", "1") }, Modifier.padding(horizontal = 16.dp)))
+      ctaButton(CtaButtonParams("1", onClick = { log("1") }, Modifier.padding(horizontal = 16.dp)))
     } else {
-      SubcomposeLayout { constraints ->
-        layout(constraints.maxWidth, constraints.maxHeight) {
+      SubcomposeLayout(Modifier.border(1.dp, Color.Magenta)) { constraints ->
+        layout(constraints.minWidth, constraints.minHeight) {
           val cta: List<Placeable> = subcompose(Unit) {
-            ctaButton(CtaButtonParams("2", onClick = { Log.d("TAG", "2") }, Modifier.padding(horizontal = 32.dp)))
+            ctaButton(CtaButtonParams("2", onClick = { log("2") }, Modifier.padding(horizontal = 32.dp)))
           }.map { it.measure(constraints) }
           cta.first().place(0, 0)
         }
@@ -109,16 +110,16 @@ fun WithSubcomposeLayout(
 fun WithoutSubcomposeLayout(
   ctaButton: @Composable (CtaButtonParams) -> Unit,
   switch: Boolean,
+  log: (String) -> Unit,
 ) {
   Column(
     verticalArrangement = Arrangement.spacedBy(50.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
     modifier = Modifier.fillMaxWidth(),
   ) {
     if (switch) {
-      ctaButton(CtaButtonParams("1", onClick = { Log.d("TAG", "1") }, Modifier.padding(horizontal = 16.dp)))
+      ctaButton(CtaButtonParams("1", onClick = { log("1") }, Modifier.padding(horizontal = 16.dp)))
     } else {
-      ctaButton(CtaButtonParams("2", onClick = { Log.d("TAG", "2") }, Modifier.padding(horizontal = 32.dp)))
+      ctaButton(CtaButtonParams("2", onClick = { log("2") }, Modifier.padding(horizontal = 32.dp)))
     }
   }
 }
