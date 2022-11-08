@@ -96,7 +96,7 @@ fun WithSubcomposeLayout(
       SubcomposeLayout { constraints ->
         layout(constraints.maxWidth, constraints.maxHeight) {
           val cta: List<Placeable> = subcompose(Unit) {
-            ctaButton(CtaButtonParams("2", onClick = { Log.d("TAG", "1") }, Modifier.padding(horizontal = 16.dp)))
+            ctaButton(CtaButtonParams("2", onClick = { Log.d("TAG", "2") }, Modifier.padding(horizontal = 32.dp)))
           }.map { it.measure(constraints) }
           cta.first().place(0, 0)
         }
