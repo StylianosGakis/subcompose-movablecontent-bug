@@ -1,4 +1,4 @@
-package bug.movable_content_crash
+package bug.movable_content_crash // ktlint-disable package-name
 
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -63,12 +64,32 @@ fun Repro() {
   var switch by remember { mutableStateOf(true) }
   Column(
     verticalArrangement = Arrangement.spacedBy(50.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
     modifier = Modifier.fillMaxSize(),
   ) {
     Button(onClick = { switch = !switch }) {
       Text(text = "Flip me")
     }
+    Column {
+      Text("Without subcompose, does work")
+      WithoutSubcomposeLayout(ctaButton, switch)
+    }
+    Column {
+      Text("With subcompose, doesn't work")
+      WithSubcomposeLayout(ctaButton, switch)
+    }
+  }
+}
+
+@Composable
+fun WithSubcomposeLayout(
+  ctaButton: @Composable (CtaButtonParams) -> Unit,
+  switch: Boolean,
+) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(50.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier = Modifier.fillMaxWidth(),
+  ) {
     if (switch) {
       ctaButton(CtaButtonParams("1", onClick = { Log.d("TAG", "1") }, Modifier.padding(horizontal = 16.dp)))
     } else {
@@ -80,6 +101,24 @@ fun Repro() {
           cta.first().place(0, 0)
         }
       }
+    }
+  }
+}
+
+@Composable
+fun WithoutSubcomposeLayout(
+  ctaButton: @Composable (CtaButtonParams) -> Unit,
+  switch: Boolean,
+) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(50.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier = Modifier.fillMaxWidth(),
+  ) {
+    if (switch) {
+      ctaButton(CtaButtonParams("1", onClick = { Log.d("TAG", "1") }, Modifier.padding(horizontal = 16.dp)))
+    } else {
+      ctaButton(CtaButtonParams("2", onClick = { Log.d("TAG", "2") }, Modifier.padding(horizontal = 32.dp)))
     }
   }
 }
