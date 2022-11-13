@@ -4,3 +4,5 @@ Also applies to movableContentWithReceiverOf even though this sample does not sh
 
 Download repro video:
 [repro](./misc/repro.mp4)
+
+Related bug: https://issuetracker.google.com/issues/258053979
